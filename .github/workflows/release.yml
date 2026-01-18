@@ -1,0 +1,154 @@
+name: Release
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+    inputs:
+      version_bump:
+        description: 'Version bump type'
+        required: true
+        default: 'patch'
+        type: choice
+        options:
+          - patch
+          - minor
+          - major
+
+jobs:
+  build-and-release:
+    runs-on: macos-14
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Get next version
+        id: version
+        run: |
+          # Get latest tag
+          LATEST_TAG=$(git describe --tags --abbrev=0 2>/dev/null || echo "v0.0.0")
+          echo "Latest tag: $LATEST_TAG"
+
+          # Parse version
+          VERSION=${LATEST_TAG#v}
+          IFS='.' read -r MAJOR MINOR PATCH <<< "$VERSION"
+
+          # Determine bump type
+          BUMP_TYPE="${{ github.event.inputs.version_bump || 'patch' }}"
+
+          # Check commit message for version hints
+          COMMIT_MSG=$(git log -1 --pretty=%B)
+          if [[ "$COMMIT_MSG" == *"[major]"* ]] || [[ "$COMMIT_MSG" == *"BREAKING"* ]]; then
+            BUMP_TYPE="major"
+          elif [[ "$COMMIT_MSG" == *"[minor]"* ]] || [[ "$COMMIT_MSG" == *"feat:"* ]]; then
+            BUMP_TYPE="minor"
+          fi
+
+          # Bump version
+          case $BUMP_TYPE in
+            major)
+              MAJOR=$((MAJOR + 1))
+              MINOR=0
+              PATCH=0
+              ;;
+            minor)
+              MINOR=$((MINOR + 1))
+              PATCH=0
+              ;;
+            patch)
+              PATCH=$((PATCH + 1))
+              ;;
+          esac
+
+          NEW_VERSION="${MAJOR}.${MINOR}.${PATCH}"
+          echo "New version: $NEW_VERSION"
+          echo "version=$NEW_VERSION" >> $GITHUB_OUTPUT
+
+      - name: Setup Xcode
+        uses: maxim-lobanov/setup-xcode@v1
+        with:
+          xcode-version: latest-stable
+
+      - name: Update version in project
+        run: |
+          # Update version in Info.plist
+          /usr/libexec/PlistBuddy -c "Set :CFBundleShortVersionString ${{ steps.version.outputs.version }}" BabyLock/Info.plist
+          /usr/libexec/PlistBuddy -c "Set :CFBundleVersion ${{ steps.version.outputs.version }}" BabyLock/Info.plist
+
+      - name: Build
+        run: |
+          xcodebuild -scheme BabyLock \
+            -configuration Release \
+            -derivedDataPath build \
+            -arch arm64 -arch x86_64 \
+            ONLY_ACTIVE_ARCH=NO \
+            CODE_SIGN_IDENTITY="-" \
+            CODE_SIGNING_REQUIRED=NO \
+            build
+
+      - name: Create DMG
+        run: |
+          APP_PATH="build/Build/Products/Release/BabyLock.app"
+          DMG_NAME="BabyLock-${{ steps.version.outputs.version }}.dmg"
+
+          # Create a temporary directory for DMG contents
+          mkdir -p dmg-contents
+          cp -R "$APP_PATH" dmg-contents/
+
+          # Create symlink to Applications
+          ln -s /Applications dmg-contents/Applications
+
+          # Create DMG
+          hdiutil create -volname "BabyLock" \
+            -srcfolder dmg-contents \
+            -ov -format UDZO \
+            "$DMG_NAME"
+
+          # Calculate SHA256
+          SHA256=$(shasum -a 256 "$DMG_NAME" | awk '{print $1}')
+          echo "sha256=$SHA256" >> $GITHUB_OUTPUT
+          echo "SHA256: $SHA256"
+        id: dmg
+
+      - name: Create Release
+        uses: softprops/action-gh-release@v1
+        with:
+          tag_name: v${{ steps.version.outputs.version }}
+          name: BabyLock v${{ steps.version.outputs.version }}
+          body: |
+            ## Installation
+
+            ### Homebrew (Recommended)
+            ```bash
+            brew tap PepijnSenders/tap
+            brew install --cask babylock
+            ```
+
+            ### Manual Download
+            Download `BabyLock-${{ steps.version.outputs.version }}.dmg` below and drag to Applications.
+
+            ---
+            **SHA256:** `${{ steps.dmg.outputs.sha256 }}`
+          files: |
+            BabyLock-${{ steps.version.outputs.version }}.dmg
+          draft: false
+          prerelease: false
+
+      - name: Trigger Homebrew tap update
+        uses: peter-evans/repository-dispatch@v2
+        with:
+          token: ${{ secrets.HOMEBREW_TAP_TOKEN }}
+          repository: PepijnSenders/homebrew-tap
+          event-type: update-cask
+          client-payload: |
+            {
+              "cask": "babylock",
+              "version": "${{ steps.version.outputs.version }}",
+              "sha256": "${{ steps.dmg.outputs.sha256 }}",
+              "url": "https://github.com/PepijnSenders/baby-lock/releases/download/v${{ steps.version.outputs.version }}/BabyLock-${{ steps.version.outputs.version }}.dmg"
+            }
