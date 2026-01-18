@@ -28,6 +28,11 @@ class LockManager: ObservableObject {
             print("[LockManager] Unlock hotkey received from InputInterceptor")
             self?.disengage()
         }
+
+        // Set up key press callback for visual feedback
+        inputInterceptor.onKeyPressed = { [weak self] character in
+            self?.overlayWindow.showLetter(character)
+        }
     }
 
     /// Toggles the lock state between locked and unlocked.

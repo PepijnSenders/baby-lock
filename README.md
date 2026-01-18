@@ -61,10 +61,10 @@ Download the latest release from the [Releases](https://github.com/PepijnSenders
 3. Launch Baby Lock
 4. Grant Accessibility permission when prompted (required for input blocking)
 
-### Homebrew (Coming Soon)
+### Homebrew
 
 ```bash
-brew install --cask baby-lock
+brew install --cask pepijnsenders/tap/babylock
 ```
 
 ## Usage

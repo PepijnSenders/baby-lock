@@ -11,6 +11,9 @@ class OverlayWindow: NSWindow {
     /// Completion handler for current animation
     private var currentCompletion: (() -> Void)?
 
+    /// Model for keystroke overlay animations
+    let keystrokeModel = KeystrokeOverlayModel()
+
     init() {
         let screenFrame = NSScreen.main?.frame ?? .zero
 
@@ -51,10 +54,16 @@ class OverlayWindow: NSWindow {
 
     /// Sets up the SwiftUI glow border view as window content
     private func setupGlowBorderView() {
-        let glowView = GlowBorderView()
-        let hostingView = NSHostingView(rootView: glowView)
+        let combinedView = CombinedOverlayView(keystrokeModel: keystrokeModel)
+        let hostingView = NSHostingView(rootView: combinedView)
         hostingView.frame = self.frame
         self.contentView = hostingView
+    }
+
+    /// Shows a floating letter at a random position on screen
+    func showLetter(_ character: String) {
+        guard let screen = NSScreen.main else { return }
+        keystrokeModel.addLetter(character, screenSize: screen.frame.size)
     }
 
     /// Handles screen resolution/configuration changes
@@ -127,6 +136,18 @@ class OverlayWindow: NSWindow {
             self?.currentCompletion = nil
             print("[OverlayWindow] Overlay hidden with fade-out animation")
         })
+    }
+}
+
+/// Combined view with glow border and keystroke overlay
+struct CombinedOverlayView: View {
+    @ObservedObject var keystrokeModel: KeystrokeOverlayModel
+
+    var body: some View {
+        ZStack {
+            GlowBorderView()
+            KeystrokeOverlayView(model: keystrokeModel)
+        }
     }
 }
 

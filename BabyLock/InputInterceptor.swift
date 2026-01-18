@@ -10,6 +10,9 @@ class InputInterceptor {
     /// Callback triggered when unlock hotkey (Cmd+Shift+B) is pressed while locked
     var onUnlockHotkey: (() -> Void)?
 
+    /// Callback triggered when any key is pressed (for visual feedback)
+    var onKeyPressed: ((String) -> Void)?
+
     /// The CGEventTap for intercepting input events
     private var eventTap: CFMachPort?
 
@@ -143,9 +146,37 @@ class InputInterceptor {
                 // Block the event (don't pass to other apps)
                 return nil
             }
+
+            // Extract character for visual feedback (only for regular keys without Cmd)
+            if !flags.contains(.maskCommand) {
+                if let character = getCharacterFromEvent(event) {
+                    DispatchQueue.main.async {
+                        InputInterceptor.current?.onKeyPressed?(character)
+                    }
+                }
+            }
         }
 
         // Block all other events by returning nil
         return nil
+    }
+
+    /// Extracts the typed character from a CGEvent
+    private static func getCharacterFromEvent(_ event: CGEvent) -> String? {
+        var length = 0
+        var chars = [UniChar](repeating: 0, count: 4)
+        event.keyboardGetUnicodeString(maxStringLength: 4, actualStringLength: &length, unicodeString: &chars)
+
+        guard length > 0 else { return nil }
+
+        let string = String(utf16CodeUnits: chars, count: length)
+
+        // Filter out control characters but allow letters, numbers, symbols
+        guard let scalar = string.unicodeScalars.first,
+              !CharacterSet.controlCharacters.contains(scalar) else {
+            return nil
+        }
+
+        return string
     }
 }

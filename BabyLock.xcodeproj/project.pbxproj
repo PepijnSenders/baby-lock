@@ -8,7 +8,7 @@
 
 /* Begin PBXBuildFile section */
 		050CDBD5F5E5D7A1D25F3872 /* HotKeyManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = A5B7280BDC66A7483598D805 /* HotKeyManager.swift */; };
-		A1000031 /* IconFactory.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1000032 /* IconFactory.swift */; };
+		3492C281CBAA9E5E9B2D580C /* KeystrokeOverlay.swift in Sources */ = {isa = PBXBuildFile; fileRef = 31B58E91AF4C22B1E56A042E /* KeystrokeOverlay.swift */; };
 		A1000001 /* BabyLockApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1000002 /* BabyLockApp.swift */; };
 		A1000003 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = A1000004 /* Assets.xcassets */; };
 		A1000021 /* LockManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1000020 /* LockManager.swift */; };
@@ -19,9 +19,11 @@
 		A100002B /* SetupGuidanceView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A100002A /* SetupGuidanceView.swift */; };
 		A100002D /* MenuBarManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = A100002C /* MenuBarManager.swift */; };
 		A100002F /* SystemEventManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = A100002E /* SystemEventManager.swift */; };
+		A1000031 /* IconFactory.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1000032 /* IconFactory.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		31B58E91AF4C22B1E56A042E /* KeystrokeOverlay.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = KeystrokeOverlay.swift; sourceTree = "<group>"; };
 		A1000002 /* BabyLockApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BabyLockApp.swift; sourceTree = "<group>"; };
 		A1000004 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		A1000005 /* BabyLock.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = BabyLock.app; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -71,6 +73,7 @@
 				A1000032 /* IconFactory.swift */,
 				A1000004 /* Assets.xcassets */,
 				A5B7280BDC66A7483598D805 /* HotKeyManager.swift */,
+				31B58E91AF4C22B1E56A042E /* KeystrokeOverlay.swift */,
 			);
 			path = BabyLock;
 			sourceTree = "<group>";
@@ -185,6 +188,7 @@
 				A100002F /* SystemEventManager.swift in Sources */,
 				A1000031 /* IconFactory.swift in Sources */,
 				050CDBD5F5E5D7A1D25F3872 /* HotKeyManager.swift in Sources */,
+				3492C281CBAA9E5E9B2D580C /* KeystrokeOverlay.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
