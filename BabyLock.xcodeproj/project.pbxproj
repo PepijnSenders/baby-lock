@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		050CDBD5F5E5D7A1D25F3872 /* HotKeyManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = A5B7280BDC66A7483598D805 /* HotKeyManager.swift */; };
 		A1000001 /* BabyLockApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1000002 /* BabyLockApp.swift */; };
 		A1000003 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = A1000004 /* Assets.xcassets */; };
 		A1000021 /* LockManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1000020 /* LockManager.swift */; };
@@ -29,6 +30,7 @@
 		A1000028 /* LaunchAtLoginManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LaunchAtLoginManager.swift; sourceTree = "<group>"; };
 		A100002A /* SetupGuidanceView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SetupGuidanceView.swift; sourceTree = "<group>"; };
 		A100002C /* MenuBarManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MenuBarManager.swift; sourceTree = "<group>"; };
+		A5B7280BDC66A7483598D805 /* HotKeyManager.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = HotKeyManager.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -62,6 +64,7 @@
 				A100002A /* SetupGuidanceView.swift */,
 				A100002C /* MenuBarManager.swift */,
 				A1000004 /* Assets.xcassets */,
+				A5B7280BDC66A7483598D805 /* HotKeyManager.swift */,
 			);
 			path = BabyLock;
 			sourceTree = "<group>";
@@ -173,6 +176,7 @@
 				A1000029 /* LaunchAtLoginManager.swift in Sources */,
 				A100002B /* SetupGuidanceView.swift in Sources */,
 				A100002D /* MenuBarManager.swift in Sources */,
+				050CDBD5F5E5D7A1D25F3872 /* HotKeyManager.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

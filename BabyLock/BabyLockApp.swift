@@ -5,9 +5,8 @@ import Combine
 class AppDelegate: NSObject, NSApplicationDelegate {
     let lockManager = LockManager()
     private var menuBarManager: MenuBarManager?
+    private var hotKeyManager: HotKeyManager?
     private var cancellables = Set<AnyCancellable>()
-    private var globalHotkeyMonitor: Any?
-    private var localHotkeyMonitor: Any?
     private var setupGuidanceController: SetupGuidanceWindowController?
     private var permissionPollingTimer: Timer?
 
@@ -67,53 +66,10 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     }
 
     private func setupGlobalHotkey() {
-        // Handler for Cmd+Shift+B hotkey
-        let hotkeyHandler: (NSEvent) -> Void = { [weak self] event in
-            // Check for keyCode 11 (B key) with Command and Shift modifiers
-            // Use rawValue check to ensure we're detecting the correct key combination
-            let flags = event.modifierFlags
-
-            if event.keyCode == 11 &&
-               flags.contains(.command) &&
-               flags.contains(.shift) &&
-               !flags.contains(.control) &&
-               !flags.contains(.option) {
-                print("[GlobalHotkey] Cmd+Shift+B detected (keyCode: \(event.keyCode), flags: \(flags.rawValue))")
-                DispatchQueue.main.async {
-                    self?.lockManager.toggle()
-                }
-            }
+        hotKeyManager = HotKeyManager { [weak self] in
+            self?.lockManager.toggle()
         }
-
-        // Global monitor: catches hotkey when OTHER apps have focus
-        // Requires Accessibility permission
-        globalHotkeyMonitor = NSEvent.addGlobalMonitorForEvents(matching: .keyDown, handler: hotkeyHandler)
-
-        if globalHotkeyMonitor == nil {
-            print("[GlobalHotkey] WARNING: Failed to create global monitor - Accessibility permission may be missing")
-        } else {
-            // Monitor object created, but verify permission is actually granted
-            // (macOS can return non-nil even without permission, but events won't be delivered)
-            if AccessibilityPermission.isGranted() {
-                print("[GlobalHotkey] Global monitor created and permission granted - hotkey will work")
-            } else {
-                print("[GlobalHotkey] Global monitor created but permission NOT granted - hotkey will NOT work until permission is granted")
-            }
-        }
-
-        // Local monitor: catches hotkey when BabyLock itself has focus (e.g., menu open)
-        localHotkeyMonitor = NSEvent.addLocalMonitorForEvents(matching: .keyDown) { event in
-            hotkeyHandler(event)
-            return event  // Pass event through
-        }
-
-        if localHotkeyMonitor == nil {
-            print("[GlobalHotkey] WARNING: Failed to create local monitor")
-        } else {
-            print("[GlobalHotkey] Local monitor created successfully")
-        }
-
-        print("[GlobalHotkey] Hotkey setup complete")
+        hotKeyManager?.setup()
     }
 
     @objc func toggleLock() {
@@ -163,23 +119,8 @@ class AppDelegate: NSObject, NSApplicationDelegate {
 
     /// Recreates the global hotkey monitor when permission is granted.
     /// Called when accessibility permission is granted after app launch.
-    /// Always recreates monitors because they may be non-functional even if non-nil
-    /// (macOS returns non-nil monitor objects even without permission, but events won't be delivered).
     private func recreateHotkeyMonitorsIfNeeded() {
-        print("[GlobalHotkey] Recreating hotkey monitors after permission granted")
-
-        // Remove existing monitors first (they may exist but be non-functional)
-        if let monitor = globalHotkeyMonitor {
-            NSEvent.removeMonitor(monitor)
-            globalHotkeyMonitor = nil
-        }
-        if let monitor = localHotkeyMonitor {
-            NSEvent.removeMonitor(monitor)
-            localHotkeyMonitor = nil
-        }
-
-        // Setup fresh monitors now that permission is granted
-        setupGlobalHotkey()
+        hotKeyManager?.recreateMonitors()
     }
 
     /// Stops the permission polling timer.
@@ -318,15 +259,8 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         }
 
         // Remove hotkey monitors
-        if let monitor = globalHotkeyMonitor {
-            NSEvent.removeMonitor(monitor)
-            globalHotkeyMonitor = nil
-        }
-        if let monitor = localHotkeyMonitor {
-            NSEvent.removeMonitor(monitor)
-            localHotkeyMonitor = nil
-        }
-        print("[GlobalHotkey] Hotkey listeners removed")
+        hotKeyManager?.cleanup()
+        hotKeyManager = nil
 
         // Stop permission polling
         stopPermissionPolling()
