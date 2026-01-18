@@ -3,13 +3,11 @@ import AppKit
 import Combine
 
 class AppDelegate: NSObject, NSApplicationDelegate {
-    var statusItem: NSStatusItem?
     let lockManager = LockManager()
+    private var menuBarManager: MenuBarManager?
     private var cancellables = Set<AnyCancellable>()
     private var globalHotkeyMonitor: Any?
     private var localHotkeyMonitor: Any?
-    private var permissionMenuItem: NSMenuItem?
-    private var launchAtLoginMenuItem: NSMenuItem?
     private var setupGuidanceController: SetupGuidanceWindowController?
     private var permissionPollingTimer: Timer?
 
@@ -55,41 +53,15 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     }
 
     private func setupMenuBar() {
-        statusItem = NSStatusBar.system.statusItem(withLength: NSStatusItem.variableLength)
-
-        if let button = statusItem?.button {
-            updateMenuBarIcon(locked: false)
-        }
-
-        let menu = NSMenu()
-        menu.delegate = self
-
-        // Permission status item (will be updated dynamically)
-        permissionMenuItem = NSMenuItem(title: "Accessibility: Checking...", action: #selector(openAccessibilitySettings), keyEquivalent: "")
-        menu.addItem(permissionMenuItem!)
-        menu.addItem(NSMenuItem.separator())
-
-        menu.addItem(NSMenuItem(title: "Toggle Lock (Cmd+Shift+B)", action: #selector(toggleLock), keyEquivalent: ""))
-        menu.addItem(NSMenuItem.separator())
-
-        // Launch at Login menu item
-        launchAtLoginMenuItem = NSMenuItem(title: "Launch at Login", action: #selector(toggleLaunchAtLogin), keyEquivalent: "")
-        menu.addItem(launchAtLoginMenuItem!)
-        menu.addItem(NSMenuItem.separator())
-
-        menu.addItem(NSMenuItem(title: "Quit", action: #selector(NSApplication.terminate(_:)), keyEquivalent: "q"))
-
-        statusItem?.menu = menu
-
-        // Initial permission check
-        updatePermissionStatus()
+        menuBarManager = MenuBarManager(delegate: self)
+        menuBarManager?.setup()
     }
 
     private func observeLockState() {
         lockManager.$isLocked
             .receive(on: DispatchQueue.main)
             .sink { [weak self] isLocked in
-                self?.updateMenuBarIcon(locked: isLocked)
+                self?.menuBarManager?.updateIcon(locked: isLocked)
             }
             .store(in: &cancellables)
     }
@@ -120,7 +92,13 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         if globalHotkeyMonitor == nil {
             print("[GlobalHotkey] WARNING: Failed to create global monitor - Accessibility permission may be missing")
         } else {
-            print("[GlobalHotkey] Global monitor created successfully")
+            // Monitor object created, but verify permission is actually granted
+            // (macOS can return non-nil even without permission, but events won't be delivered)
+            if AccessibilityPermission.isGranted() {
+                print("[GlobalHotkey] Global monitor created and permission granted - hotkey will work")
+            } else {
+                print("[GlobalHotkey] Global monitor created but permission NOT granted - hotkey will NOT work until permission is granted")
+            }
         }
 
         // Local monitor: catches hotkey when BabyLock itself has focus (e.g., menu open)
@@ -154,28 +132,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
 
     @objc func toggleLaunchAtLogin() {
         LaunchAtLoginManager.toggle()
-        updateLaunchAtLoginStatus()
-    }
-
-    private func updateLaunchAtLoginStatus() {
-        let isEnabled = LaunchAtLoginManager.isEnabled
-        launchAtLoginMenuItem?.state = isEnabled ? .on : .off
-        print("[AppDelegate] Launch at Login: \(isEnabled ? "Enabled" : "Disabled")")
-    }
-
-    private func updatePermissionStatus() {
-        let granted = AccessibilityPermission.isGranted()
-        if granted {
-            permissionMenuItem?.title = "Accessibility: Granted"
-            permissionMenuItem?.action = nil  // No action needed when granted
-        } else {
-            permissionMenuItem?.title = "Accessibility: Not Granted (Click to fix)"
-            permissionMenuItem?.action = #selector(openAccessibilitySettings)
-        }
-        print("[AppDelegate] Permission status: \(granted ? "Granted" : "Not Granted")")
-
-        // Update menu bar icon to reflect permission state
-        updateMenuBarIcon(locked: lockManager.isLocked)
+        menuBarManager?.updateLaunchAtLoginStatus()
     }
 
     /// Starts polling for permission changes if permission is not yet granted.
@@ -197,27 +154,32 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             if AccessibilityPermission.isGranted() {
                 print("[AppDelegate] Permission granted! Stopping polling")
                 self.stopPermissionPolling()
-                self.updatePermissionStatus()
+                self.menuBarManager?.updatePermissionStatus()
                 // Recreate hotkey monitors now that permission is granted
                 self.recreateHotkeyMonitorsIfNeeded()
             }
         }
     }
 
-    /// Recreates the global hotkey monitor if it wasn't created successfully before.
+    /// Recreates the global hotkey monitor when permission is granted.
     /// Called when accessibility permission is granted after app launch.
+    /// Always recreates monitors because they may be non-functional even if non-nil
+    /// (macOS returns non-nil monitor objects even without permission, but events won't be delivered).
     private func recreateHotkeyMonitorsIfNeeded() {
-        // If global monitor is nil, permission wasn't granted when we first tried
-        if globalHotkeyMonitor == nil {
-            print("[GlobalHotkey] Recreating hotkey monitors after permission granted")
-            // Remove any existing monitors first
-            if let monitor = localHotkeyMonitor {
-                NSEvent.removeMonitor(monitor)
-                localHotkeyMonitor = nil
-            }
-            // Setup fresh monitors
-            setupGlobalHotkey()
+        print("[GlobalHotkey] Recreating hotkey monitors after permission granted")
+
+        // Remove existing monitors first (they may exist but be non-functional)
+        if let monitor = globalHotkeyMonitor {
+            NSEvent.removeMonitor(monitor)
+            globalHotkeyMonitor = nil
         }
+        if let monitor = localHotkeyMonitor {
+            NSEvent.removeMonitor(monitor)
+            localHotkeyMonitor = nil
+        }
+
+        // Setup fresh monitors now that permission is granted
+        setupGlobalHotkey()
     }
 
     /// Stops the permission polling timer.
@@ -346,64 +308,6 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         }
     }
 
-    func updateMenuBarIcon(locked: Bool) {
-        guard let button = statusItem?.button else { return }
-
-        let permissionGranted = AccessibilityPermission.isGranted()
-
-        if !permissionGranted && !locked {
-            // Show warning state when permission is missing
-            // Using lock.trianglebadge.exclamationmark for clear warning indication
-            if let warningImage = NSImage(systemSymbolName: "lock.trianglebadge.exclamationmark", accessibilityDescription: "Baby Lock - Permission Required") {
-                button.image = warningImage
-            } else {
-                // Fallback: create composite image with exclamation badge
-                button.image = createWarningBadgeIcon()
-            }
-            button.toolTip = "Baby Lock - Accessibility Permission Required"
-        } else {
-            let symbolName = locked ? "lock.fill" : "lock.open"
-            button.image = NSImage(systemSymbolName: symbolName, accessibilityDescription: "Baby Lock")
-            button.toolTip = locked ? "Baby Lock - Locked" : "Baby Lock - Unlocked"
-        }
-    }
-
-    /// Creates a lock icon with a warning badge overlay for when accessibility permission is missing.
-    private func createWarningBadgeIcon() -> NSImage {
-        let size = NSSize(width: 18, height: 18)
-        let image = NSImage(size: size, flipped: false) { rect in
-            // Draw base lock icon
-            if let lockImage = NSImage(systemSymbolName: "lock.open", accessibilityDescription: nil) {
-                let lockRect = NSRect(x: 0, y: 2, width: 14, height: 14)
-                lockImage.draw(in: lockRect)
-            }
-
-            // Draw warning badge (small circle with exclamation)
-            let badgeRect = NSRect(x: 10, y: 0, width: 8, height: 8)
-            NSColor.systemOrange.setFill()
-            NSBezierPath(ovalIn: badgeRect).fill()
-
-            // Draw exclamation mark
-            let exclamation = NSAttributedString(
-                string: "!",
-                attributes: [
-                    .font: NSFont.boldSystemFont(ofSize: 6),
-                    .foregroundColor: NSColor.white
-                ]
-            )
-            let textSize = exclamation.size()
-            let textPoint = NSPoint(
-                x: badgeRect.midX - textSize.width / 2,
-                y: badgeRect.midY - textSize.height / 2
-            )
-            exclamation.draw(at: textPoint)
-
-            return true
-        }
-        image.isTemplate = true
-        return image
-    }
-
     func applicationWillTerminate(_ notification: Notification) {
         print("[AppDelegate] Application terminating - cleaning up resources")
 
@@ -434,8 +338,9 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         DistributedNotificationCenter.default().removeObserver(self)
         print("[AppDelegate] Sleep/wake and screen saver observers removed")
 
-        // Release status item
-        statusItem = nil
+        // Release menu bar manager
+        menuBarManager?.cleanup()
+        menuBarManager = nil
         print("[AppDelegate] All resources released - termination complete")
     }
 }
@@ -444,8 +349,15 @@ class AppDelegate: NSObject, NSApplicationDelegate {
 extension AppDelegate: NSMenuDelegate {
     func menuWillOpen(_ menu: NSMenu) {
         // Update status items each time menu opens
-        updatePermissionStatus()
-        updateLaunchAtLoginStatus()
+        menuBarManager?.updatePermissionStatus()
+        menuBarManager?.updateLaunchAtLoginStatus()
+    }
+}
+
+// MARK: - MenuBarManagerDelegate
+extension AppDelegate: MenuBarManagerDelegate {
+    var isLocked: Bool {
+        lockManager.isLocked
     }
 }
 
