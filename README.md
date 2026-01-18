@@ -3,7 +3,7 @@
 </p>
 
 <p align="center">
-  <strong>A macOS menu bar app that locks your keyboard and mouse so babies can safely watch the screen</strong>
+  <strong>A macOS menu bar app that lets your baby "help" you code without the chaos</strong>
 </p>
 
 <p align="center">
@@ -26,16 +26,16 @@
 
 ## The Problem
 
-You want to let your baby watch a video or educational app, but tiny hands love to mash keyboards and click everything in sight. Before you know it, they've:
+You're working with your baby on your lap. They see the pretty lights, the scrolling terminal, the blinking cursor — and they want IN. Those tiny hands start pounding the keyboard, and suddenly:
 
-- Closed the video
-- Opened 47 browser tabs
-- Deleted your important email
-- Somehow changed your system language to Klingon
+- Your Claude Code session? Cancelled.
+- That Slack message? Sent half-finished to your CEO.
+- Your terminal? Now running `rm -rf` something.
+- Three hours of unsaved work? Gone.
 
 ## The Solution
 
-**Baby Lock** is a simple menu bar app that blocks all keyboard and mouse input with a single hotkey. A soft blue glow around the screen lets you know it's active, and the same hotkey unlocks everything when you're done.
+**Baby Lock** lets your baby "help" you code without the chaos. One hotkey locks all input while they happily mash away at the keyboard, and another press unlocks when you need control back. A soft blue glow shows it's active, so you know you're safe.
 
 ## Features
 
@@ -212,8 +212,8 @@ This project is licensed under the MIT License — see the [LICENSE](LICENSE) fi
 
 ## Acknowledgments
 
-- Built with love for parents everywhere
-- Inspired by every parent who's had a toddler "help" with their computer
+- Built by a developer who codes with a baby on his lap
+- For every parent who's lost a terminal session to tiny hands
 
 ---
 

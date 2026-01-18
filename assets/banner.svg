@@ -46,7 +46,7 @@
   <text x="280" y="95" font-family="-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Helvetica Neue', sans-serif" font-size="56" font-weight="700" fill="#ffffff" filter="url(#glow)">Baby Lock</text>
 
   <!-- Tagline -->
-  <text x="280" y="135" font-family="-apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Helvetica Neue', sans-serif" font-size="18" fill="#8899aa">Safe screen time for curious little hands</text>
+  <text x="280" y="135" font-family="-apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Helvetica Neue', sans-serif" font-size="18" fill="#8899aa">Let your baby "help" you code</text>
 
   <!-- macOS badge -->
   <g transform="translate(680, 165)">
