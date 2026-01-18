@@ -1,0 +1,56 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 200">
+  <defs>
+    <linearGradient id="bgGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#1a1a2e;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#16213e;stop-opacity:1" />
+    </linearGradient>
+    <linearGradient id="glowGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" style="stop-color:#4d9fff;stop-opacity:0.8" />
+      <stop offset="50%" style="stop-color:#66b3ff;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#4d9fff;stop-opacity:0.8" />
+    </linearGradient>
+    <filter id="glow" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur stdDeviation="3" result="coloredBlur"/>
+      <feMerge>
+        <feMergeNode in="coloredBlur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+    <filter id="softGlow" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur stdDeviation="8" result="coloredBlur"/>
+      <feMerge>
+        <feMergeNode in="coloredBlur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+  </defs>
+
+  <!-- Background -->
+  <rect width="800" height="200" fill="url(#bgGradient)" rx="12"/>
+
+  <!-- Glow border effect -->
+  <rect x="4" y="4" width="792" height="192" fill="none" stroke="url(#glowGradient)" stroke-width="3" rx="10" filter="url(#softGlow)" opacity="0.6"/>
+
+  <!-- Lock Icon -->
+  <g transform="translate(180, 100)" filter="url(#glow)">
+    <!-- Lock body -->
+    <rect x="-30" y="-10" width="60" height="45" rx="8" fill="#4d9fff"/>
+    <!-- Lock shackle -->
+    <path d="M -18 -10 L -18 -28 A 18 18 0 0 1 18 -28 L 18 -10" fill="none" stroke="#4d9fff" stroke-width="8" stroke-linecap="round"/>
+    <!-- Keyhole -->
+    <circle cx="0" cy="12" r="8" fill="#1a1a2e"/>
+    <rect x="-4" y="12" width="8" height="14" fill="#1a1a2e"/>
+  </g>
+
+  <!-- Text -->
+  <text x="280" y="95" font-family="-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Helvetica Neue', sans-serif" font-size="56" font-weight="700" fill="#ffffff" filter="url(#glow)">Baby Lock</text>
+
+  <!-- Tagline -->
+  <text x="280" y="135" font-family="-apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Helvetica Neue', sans-serif" font-size="18" fill="#8899aa">Safe screen time for curious little hands</text>
+
+  <!-- macOS badge -->
+  <g transform="translate(680, 165)">
+    <rect x="0" y="0" width="90" height="24" rx="12" fill="#333344"/>
+    <text x="45" y="16" font-family="-apple-system, BlinkMacSystemFont, sans-serif" font-size="11" fill="#aabbcc" text-anchor="middle">macOS 12+</text>
+  </g>
+</svg>
