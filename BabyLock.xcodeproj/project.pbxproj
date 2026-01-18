@@ -17,6 +17,7 @@
 		A1000029 /* LaunchAtLoginManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1000028 /* LaunchAtLoginManager.swift */; };
 		A100002B /* SetupGuidanceView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A100002A /* SetupGuidanceView.swift */; };
 		A100002D /* MenuBarManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = A100002C /* MenuBarManager.swift */; };
+		A100002F /* SystemEventManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = A100002E /* SystemEventManager.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -30,6 +31,7 @@
 		A1000028 /* LaunchAtLoginManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LaunchAtLoginManager.swift; sourceTree = "<group>"; };
 		A100002A /* SetupGuidanceView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SetupGuidanceView.swift; sourceTree = "<group>"; };
 		A100002C /* MenuBarManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MenuBarManager.swift; sourceTree = "<group>"; };
+		A100002E /* SystemEventManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SystemEventManager.swift; sourceTree = "<group>"; };
 		A5B7280BDC66A7483598D805 /* HotKeyManager.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = HotKeyManager.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -63,6 +65,7 @@
 				A1000028 /* LaunchAtLoginManager.swift */,
 				A100002A /* SetupGuidanceView.swift */,
 				A100002C /* MenuBarManager.swift */,
+				A100002E /* SystemEventManager.swift */,
 				A1000004 /* Assets.xcassets */,
 				A5B7280BDC66A7483598D805 /* HotKeyManager.swift */,
 			);
@@ -176,6 +179,7 @@
 				A1000029 /* LaunchAtLoginManager.swift in Sources */,
 				A100002B /* SetupGuidanceView.swift in Sources */,
 				A100002D /* MenuBarManager.swift in Sources */,
+				A100002F /* SystemEventManager.swift in Sources */,
 				050CDBD5F5E5D7A1D25F3872 /* HotKeyManager.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
