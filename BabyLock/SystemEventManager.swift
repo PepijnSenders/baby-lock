@@ -6,15 +6,73 @@ import AppKit
 final class SystemEventManager {
     private let lockManager: LockManager
 
+    /// Defines how to handle a system event
+    private enum EventAction {
+        case preserveState(description: String)
+        case reconnectTap(description: String)
+    }
+
+    /// Configuration for a system event observer
+    private struct EventConfig {
+        let name: Notification.Name
+        let action: EventAction
+        let useDistributedCenter: Bool
+
+        init(_ name: Notification.Name, action: EventAction, distributed: Bool = false) {
+            self.name = name
+            self.action = action
+            self.useDistributedCenter = distributed
+        }
+    }
+
+    /// All system events to observe
+    private let eventConfigs: [EventConfig] = [
+        // Sleep/Wake
+        EventConfig(NSWorkspace.willSleepNotification,
+                    action: .preserveState(description: "System will sleep")),
+        EventConfig(NSWorkspace.didWakeNotification,
+                    action: .reconnectTap(description: "System did wake")),
+        // Display Sleep/Wake
+        EventConfig(NSWorkspace.screensDidSleepNotification,
+                    action: .preserveState(description: "Displays will sleep")),
+        EventConfig(NSWorkspace.screensDidWakeNotification,
+                    action: .reconnectTap(description: "Displays did wake")),
+        // Screen Saver
+        EventConfig(Notification.Name("com.apple.screensaver.didstart"),
+                    action: .preserveState(description: "Screen saver started"),
+                    distributed: true),
+        EventConfig(Notification.Name("com.apple.screensaver.didstop"),
+                    action: .reconnectTap(description: "Screen saver stopped"),
+                    distributed: true),
+    ]
+
     init(lockManager: LockManager) {
         self.lockManager = lockManager
     }
 
     /// Sets up observers for all system events.
     func setup() {
-        setupSleepWakeNotifications()
-        setupDisplayNotifications()
-        setupScreenSaverNotifications()
+        for config in eventConfigs {
+            let center: Any = config.useDistributedCenter
+                ? DistributedNotificationCenter.default()
+                : NSWorkspace.shared.notificationCenter
+
+            if let workspaceCenter = center as? NotificationCenter {
+                workspaceCenter.addObserver(
+                    self,
+                    selector: #selector(handleSystemEvent),
+                    name: config.name,
+                    object: nil
+                )
+            } else if let distributedCenter = center as? DistributedNotificationCenter {
+                distributedCenter.addObserver(
+                    self,
+                    selector: #selector(handleSystemEvent),
+                    name: config.name,
+                    object: nil
+                )
+            }
+        }
         print("[SystemEventManager] All system event observers registered")
     }
 
@@ -25,106 +83,23 @@ final class SystemEventManager {
         print("[SystemEventManager] All observers removed")
     }
 
-    // MARK: - Sleep/Wake Notifications
+    // MARK: - Unified Event Handler
 
-    private func setupSleepWakeNotifications() {
-        let notificationCenter = NSWorkspace.shared.notificationCenter
+    @objc private func handleSystemEvent(_ notification: Notification) {
+        guard let config = eventConfigs.first(where: { $0.name == notification.name }) else {
+            return
+        }
 
-        notificationCenter.addObserver(
-            self,
-            selector: #selector(handleSystemWillSleep),
-            name: NSWorkspace.willSleepNotification,
-            object: nil
-        )
+        switch config.action {
+        case .preserveState(let description):
+            print("[SystemEventManager] \(description) - lock state preserved: \(lockManager.isLocked)")
 
-        notificationCenter.addObserver(
-            self,
-            selector: #selector(handleSystemDidWake),
-            name: NSWorkspace.didWakeNotification,
-            object: nil
-        )
-    }
-
-    @objc private func handleSystemWillSleep(_ notification: Notification) {
-        print("[SystemEventManager] System will sleep - lock state preserved: \(lockManager.isLocked)")
-        // Lock state is preserved via isLocked property
-        // No action needed - state persists through sleep
-    }
-
-    @objc private func handleSystemDidWake(_ notification: Notification) {
-        print("[SystemEventManager] System did wake - lock state: \(lockManager.isLocked)")
-        reconnectEventTapIfLocked()
-    }
-
-    // MARK: - Display Sleep/Wake Notifications
-
-    private func setupDisplayNotifications() {
-        let notificationCenter = NSWorkspace.shared.notificationCenter
-
-        notificationCenter.addObserver(
-            self,
-            selector: #selector(handleScreensWillSleep),
-            name: NSWorkspace.screensDidSleepNotification,
-            object: nil
-        )
-
-        notificationCenter.addObserver(
-            self,
-            selector: #selector(handleScreensDidWake),
-            name: NSWorkspace.screensDidWakeNotification,
-            object: nil
-        )
-    }
-
-    @objc private func handleScreensWillSleep(_ notification: Notification) {
-        print("[SystemEventManager] Displays will sleep - lock state preserved: \(lockManager.isLocked)")
-        // Lock state is preserved via isLocked property
-        // Display is allowed to sleep normally - no interference
-    }
-
-    @objc private func handleScreensDidWake(_ notification: Notification) {
-        print("[SystemEventManager] Displays did wake - lock state: \(lockManager.isLocked)")
-        reconnectEventTapIfLocked()
-    }
-
-    // MARK: - Screen Saver Notifications
-
-    private func setupScreenSaverNotifications() {
-        let distributedCenter = DistributedNotificationCenter.default()
-
-        distributedCenter.addObserver(
-            self,
-            selector: #selector(handleScreenSaverDidStart),
-            name: NSNotification.Name("com.apple.screensaver.didstart"),
-            object: nil
-        )
-
-        distributedCenter.addObserver(
-            self,
-            selector: #selector(handleScreenSaverDidStop),
-            name: NSNotification.Name("com.apple.screensaver.didstop"),
-            object: nil
-        )
-    }
-
-    @objc private func handleScreenSaverDidStart(_ notification: Notification) {
-        print("[SystemEventManager] Screen saver started - lock state preserved: \(lockManager.isLocked)")
-        // Lock state is preserved via isLocked property
-        // Screen saver takes precedence visually (both at level 1000, but screen saver is newer window)
-        // Input blocking remains active via CGEventTap
-    }
-
-    @objc private func handleScreenSaverDidStop(_ notification: Notification) {
-        print("[SystemEventManager] Screen saver stopped - lock state: \(lockManager.isLocked)")
-        reconnectEventTapIfLocked()
-    }
-
-    // MARK: - Helpers
-
-    private func reconnectEventTapIfLocked() {
-        if lockManager.isLocked {
-            print("[SystemEventManager] Reconnecting event tap")
-            lockManager.reconnectEventTapIfNeeded()
+        case .reconnectTap(let description):
+            print("[SystemEventManager] \(description) - lock state: \(lockManager.isLocked)")
+            if lockManager.isLocked {
+                print("[SystemEventManager] Reconnecting event tap")
+                lockManager.reconnectEventTapIfNeeded()
+            }
         }
     }
 }
