@@ -37,6 +37,10 @@ You're working with your baby on your lap. They see the pretty lights, the scrol
 
 **Baby Lock** lets your baby "help" you code without the chaos. One hotkey locks all input while they happily mash away at the keyboard, and another press unlocks when you need control back. A soft blue glow shows it's active, so you know you're safe.
 
+<p align="center">
+  <img src="assets/demo.gif" alt="Baby Lock Demo" width="700">
+</p>
+
 ## Features
 
 - **One Hotkey to Rule Them All** — Press `Cmd+Shift+B` to lock, press again to unlock
