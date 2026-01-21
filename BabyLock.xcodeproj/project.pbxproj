@@ -20,6 +20,8 @@
 		A100002D /* MenuBarManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = A100002C /* MenuBarManager.swift */; };
 		A100002F /* SystemEventManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = A100002E /* SystemEventManager.swift */; };
 		A1000031 /* IconFactory.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1000032 /* IconFactory.swift */; };
+		A1000035 /* ShortcutConfiguration.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1000033 /* ShortcutConfiguration.swift */; };
+		A1000037 /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1000036 /* SettingsView.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -36,6 +38,8 @@
 		A100002C /* MenuBarManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MenuBarManager.swift; sourceTree = "<group>"; };
 		A100002E /* SystemEventManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SystemEventManager.swift; sourceTree = "<group>"; };
 		A1000032 /* IconFactory.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IconFactory.swift; sourceTree = "<group>"; };
+		A1000033 /* ShortcutConfiguration.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShortcutConfiguration.swift; sourceTree = "<group>"; };
+		A1000036 /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
 		A5B7280BDC66A7483598D805 /* HotKeyManager.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = HotKeyManager.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -71,6 +75,8 @@
 				A100002C /* MenuBarManager.swift */,
 				A100002E /* SystemEventManager.swift */,
 				A1000032 /* IconFactory.swift */,
+				A1000033 /* ShortcutConfiguration.swift */,
+				A1000036 /* SettingsView.swift */,
 				A1000004 /* Assets.xcassets */,
 				A5B7280BDC66A7483598D805 /* HotKeyManager.swift */,
 				31B58E91AF4C22B1E56A042E /* KeystrokeOverlay.swift */,
@@ -187,6 +193,8 @@
 				A100002D /* MenuBarManager.swift in Sources */,
 				A100002F /* SystemEventManager.swift in Sources */,
 				A1000031 /* IconFactory.swift in Sources */,
+				A1000035 /* ShortcutConfiguration.swift in Sources */,
+				A1000037 /* SettingsView.swift in Sources */,
 				050CDBD5F5E5D7A1D25F3872 /* HotKeyManager.swift in Sources */,
 				3492C281CBAA9E5E9B2D580C /* KeystrokeOverlay.swift in Sources */,
 			);

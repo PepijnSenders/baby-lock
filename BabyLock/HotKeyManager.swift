@@ -77,16 +77,9 @@ final class HotKeyManager {
     // MARK: - Private
 
     private func handleKeyEvent(_ event: NSEvent) {
-        // Check for keyCode 11 (B key) with Command and Shift modifiers
-        // Use rawValue check to ensure we're detecting the correct key combination
-        let flags = event.modifierFlags
-
-        if event.keyCode == 11 &&
-           flags.contains(.command) &&
-           flags.contains(.shift) &&
-           !flags.contains(.control) &&
-           !flags.contains(.option) {
-            print("[HotKeyManager] Cmd+Shift+B detected (keyCode: \(event.keyCode), flags: \(flags.rawValue))")
+        let shortcut = ShortcutConfigurationManager.shared.currentShortcut
+        if shortcut.matches(event: event) {
+            print("[HotKeyManager] Shortcut \(shortcut.displayString) detected (keyCode: \(event.keyCode), flags: \(event.modifierFlags.rawValue))")
             DispatchQueue.main.async { [weak self] in
                 self?.onHotkeyPressed()
             }
