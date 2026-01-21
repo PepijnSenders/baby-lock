@@ -129,16 +129,11 @@ class InputInterceptor {
             return Unmanaged.passUnretained(event)
         }
 
-        // Check for unlock hotkey: Cmd+Shift+B
+        // Check for unlock hotkey (configurable shortcut)
         if type == .keyDown {
-            let keyCode = event.getIntegerValueField(.keyboardEventKeycode)
-            let flags = event.flags
-
-            // B key = 11, check for Cmd+Shift modifiers
-            if keyCode == 11 &&
-               flags.contains(.maskCommand) &&
-               flags.contains(.maskShift) {
-                print("[InputInterceptor] Unlock hotkey detected!")
+            let shortcut = ShortcutConfigurationManager.shared.currentShortcut
+            if shortcut.matches(cgEvent: event) {
+                print("[InputInterceptor] Unlock hotkey detected (\(shortcut.displayString))!")
                 // Trigger unlock callback on main thread
                 DispatchQueue.main.async {
                     InputInterceptor.current?.onUnlockHotkey?()
@@ -148,6 +143,7 @@ class InputInterceptor {
             }
 
             // Extract character for visual feedback (only for regular keys without Cmd)
+            let flags = event.flags
             if !flags.contains(.maskCommand) {
                 if let character = getCharacterFromEvent(event) {
                     DispatchQueue.main.async {

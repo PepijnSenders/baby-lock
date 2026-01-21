@@ -6,7 +6,7 @@ class MenuBarManager {
     var statusItem: NSStatusItem?
     private weak var delegate: MenuBarManagerDelegate?
     private var permissionMenuItem: NSMenuItem?
-    private var launchAtLoginMenuItem: NSMenuItem?
+    private var toggleMenuItem: NSMenuItem?
 
     init(delegate: MenuBarManagerDelegate) {
         self.delegate = delegate
@@ -28,15 +28,18 @@ class MenuBarManager {
         menu.addItem(permissionMenuItem!)
         menu.addItem(NSMenuItem.separator())
 
-        let toggleItem = NSMenuItem(title: "Toggle Lock (Cmd+Shift+B)", action: #selector(delegate?.toggleLock), keyEquivalent: "")
-        toggleItem.target = delegate as AnyObject
-        menu.addItem(toggleItem)
-        menu.addItem(NSMenuItem.separator())
+        // Toggle Lock menu item with dynamic shortcut display
+        let shortcutDisplay = ShortcutConfigurationManager.shared.currentShortcut.displayString
+        toggleMenuItem = NSMenuItem(title: "Toggle Lock (\(shortcutDisplay))", action: #selector(delegate?.toggleLock), keyEquivalent: "")
+        toggleMenuItem?.target = delegate as AnyObject
+        menu.addItem(toggleMenuItem!)
 
-        // Launch at Login menu item
-        launchAtLoginMenuItem = NSMenuItem(title: "Launch at Login", action: #selector(delegate?.toggleLaunchAtLogin), keyEquivalent: "")
-        launchAtLoginMenuItem?.target = delegate as AnyObject
-        menu.addItem(launchAtLoginMenuItem!)
+        // Settings menu item
+        let settingsItem = NSMenuItem(title: "Settings...", action: #selector(delegate?.openSettings), keyEquivalent: ",")
+        settingsItem.keyEquivalentModifierMask = .command
+        settingsItem.target = delegate as AnyObject
+        menu.addItem(settingsItem)
+
         menu.addItem(NSMenuItem.separator())
 
         menu.addItem(NSMenuItem(title: "Quit", action: #selector(NSApplication.terminate(_:)), keyEquivalent: "q"))
@@ -73,10 +76,10 @@ class MenuBarManager {
         updateIcon(locked: isLocked)
     }
 
-    func updateLaunchAtLoginStatus() {
-        let isEnabled = LaunchAtLoginManager.isEnabled
-        launchAtLoginMenuItem?.state = isEnabled ? .on : .off
-        print("[MenuBarManager] Launch at Login: \(isEnabled ? "Enabled" : "Disabled")")
+    func updateShortcutDisplay() {
+        let shortcutDisplay = ShortcutConfigurationManager.shared.currentShortcut.displayString
+        toggleMenuItem?.title = "Toggle Lock (\(shortcutDisplay))"
+        print("[MenuBarManager] Shortcut display updated to: \(shortcutDisplay)")
     }
 
     func cleanup() {
@@ -90,5 +93,5 @@ class MenuBarManager {
     var isLocked: Bool { get }
     @objc func toggleLock()
     @objc func openAccessibilitySettings()
-    @objc func toggleLaunchAtLogin()
+    @objc func openSettings()
 }

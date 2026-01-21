@@ -9,6 +9,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     private var systemEventManager: SystemEventManager?
     private var cancellables = Set<AnyCancellable>()
     private var setupGuidanceController: SetupGuidanceWindowController?
+    private var settingsWindowController: SettingsWindowController?
     private var permissionPollingTimer: Timer?
 
     func applicationDidFinishLaunching(_ notification: Notification) {
@@ -18,6 +19,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         setupGlobalHotkey()
         startPermissionPollingIfNeeded()
         setupSystemEventHandling()
+        observeShortcutChanges()
     }
 
     private func handleFirstLaunchIfNeeded() {
@@ -73,6 +75,16 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         hotKeyManager?.setup()
     }
 
+    private func observeShortcutChanges() {
+        NotificationCenter.default.addObserver(
+            forName: .shortcutDidChange,
+            object: nil,
+            queue: .main
+        ) { [weak self] _ in
+            self?.menuBarManager?.updateShortcutDisplay()
+        }
+    }
+
     @objc func toggleLock() {
         // Check permission before allowing lock
         if !lockManager.isLocked && !AccessibilityPermission.isGranted() {
@@ -87,9 +99,11 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         AccessibilityPermission.openSystemPreferences()
     }
 
-    @objc func toggleLaunchAtLogin() {
-        LaunchAtLoginManager.toggle()
-        menuBarManager?.updateLaunchAtLoginStatus()
+    @objc func openSettings() {
+        if settingsWindowController == nil {
+            settingsWindowController = SettingsWindowController()
+        }
+        settingsWindowController?.showWindow()
     }
 
     /// Starts polling for permission changes if permission is not yet granted.
@@ -161,6 +175,10 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         // Release menu bar manager
         menuBarManager?.cleanup()
         menuBarManager = nil
+
+        // Clean up settings window
+        settingsWindowController = nil
+
         print("[AppDelegate] All resources released - termination complete")
     }
 }
@@ -170,7 +188,6 @@ extension AppDelegate: NSMenuDelegate {
     func menuWillOpen(_ menu: NSMenu) {
         // Update status items each time menu opens
         menuBarManager?.updatePermissionStatus()
-        menuBarManager?.updateLaunchAtLoginStatus()
     }
 }
 
