@@ -43,7 +43,7 @@ You're working with your baby on your lap. They see the pretty lights, the scrol
 
 ## Features
 
-- **One Hotkey to Rule Them All** — Press `Cmd+Shift+B` to lock, press again to unlock
+- **One Hotkey to Rule Them All** — Press `Cmd+Shift+B` to lock, press again to unlock (customizable)
 - **Visual Feedback** — Soft blue glow border indicates when lock is active
 - **Menu Bar App** — Lives quietly in your menu bar, no dock icon clutter
 - **Works Everywhere** — Blocks input even in fullscreen videos and apps
@@ -84,7 +84,7 @@ Click the menu bar icon to access:
 |--------|-------------|
 | Permission Status | Shows if Accessibility permission is granted |
 | Toggle Lock | Lock/unlock input (same as hotkey) |
-| Launch at Login | Start Baby Lock when you log in |
+| Settings | Configure shortcut key and launch at login |
 | Quit | Exit the application |
 
 ### Icon States
@@ -146,7 +146,9 @@ BabyLock/
 ├── HotKeyManager.swift        # Global hotkey handling
 ├── SystemEventManager.swift   # Sleep/wake event handling
 ├── AccessibilityPermission.swift  # Permission management
-└── LaunchAtLoginManager.swift # Launch at login feature
+├── LaunchAtLoginManager.swift # Launch at login feature
+├── ShortcutConfiguration.swift # Shortcut persistence
+└── SettingsView.swift         # Settings window UI
 ```
 
 ### Key Technologies
@@ -167,7 +169,7 @@ BabyLock/
 
 ### Can I change the hotkey?
 
-Not currently, but this is planned for a future release. For now, `Cmd+Shift+B` is the only option.
+Yes! Open Settings from the menu bar (or press `Cmd+,`) and click the shortcut field to record a new key combination. The shortcut must include at least one modifier key (Cmd, Ctrl, or Option).
 
 ### Does it work with multiple monitors?
 
@@ -204,7 +206,7 @@ Contributions are welcome! Please feel free to submit a Pull Request.
 
 ## Roadmap
 
-- [ ] Customizable hotkey
+- [x] Customizable hotkey
 - [ ] Multi-monitor overlay support
 - [ ] Customizable glow color
 - [ ] Timer mode (auto-unlock after X minutes)
