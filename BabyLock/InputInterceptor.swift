@@ -41,6 +41,10 @@ class InputInterceptor {
         eventMask |= (1 << CGEventType.scrollWheel.rawValue)
         eventMask |= (1 << CGEventType.leftMouseDragged.rawValue)
         eventMask |= (1 << CGEventType.rightMouseDragged.rawValue)
+        eventMask |= (1 << CGEventType.otherMouseDown.rawValue)
+        eventMask |= (1 << CGEventType.otherMouseUp.rawValue)
+        eventMask |= (1 << CGEventType.otherMouseDragged.rawValue)
+        eventMask |= (1 << 14)  // NX_SYSDEFINED for system keys (F-keys, media keys)
 
         // Create the event tap
         eventTap = CGEvent.tapCreate(
